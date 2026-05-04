@@ -25,6 +25,7 @@ import (
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/bluekeyes/go-gitdiff/gitdiff"
 	"github.com/gorilla/feeds"
+	"github.com/picosh/git-pr/db"
 )
 
 var (
@@ -1187,9 +1188,10 @@ func GitWebServer(cfg *GitCfg) http.Handler {
 	}
 
 	be := &Backend{
-		DB:     dbh,
-		Logger: cfg.Logger,
-		Cfg:    cfg,
+		DB:      dbh,
+		Queries: db.New(dbh),
+		Logger:  cfg.Logger,
+		Cfg:     cfg,
 	}
 	prCmd := &PrCmd{
 		Backend: be,

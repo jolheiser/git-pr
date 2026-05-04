@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/bluekeyes/go-gitdiff/gitdiff"
+	"github.com/picosh/git-pr/db"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -151,17 +152,19 @@ func ParsePatchset(patchset io.Reader) ([]*Patch, error) {
 		contentSha := calcContentSha(diffFiles, header)
 
 		patches = append(patches, &Patch{
-			AuthorName:    authorName,
-			AuthorEmail:   authorEmail,
-			AuthorDate:    header.AuthorDate.UTC(),
-			Title:         header.Title,
-			Body:          header.Body,
-			BodyAppendix:  header.BodyAppendix,
-			CommitSha:     header.SHA,
-			ContentSha:    contentSha,
-			RawText:       patchStr,
-			BaseCommitSha: sql.NullString{String: baseCommit},
-			Files:         diffFiles,
+			Patch: db.Patch{
+				AuthorName:    authorName,
+				AuthorEmail:   authorEmail,
+				AuthorDate:    header.AuthorDate.UTC(),
+				Title:         header.Title,
+				Body:          header.Body,
+				BodyAppendix:  header.BodyAppendix,
+				CommitSha:     header.SHA,
+				ContentSha:    contentSha,
+				RawText:       patchStr,
+				BaseCommitSha: sql.NullString{String: baseCommit},
+			},
+			Files: diffFiles,
 		})
 	}
 

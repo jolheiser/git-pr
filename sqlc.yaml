@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "db/query.sql"
+    schema: "db/schema.sql"
+    gen:
+      go:
+        package: "db"
+        out: "db"
+        emit_db_tags: true
+        emit_json_tags: false
+        overrides:
+          - column: "event_logs.data"
+            go_type:
+              type: "EventData"
+          - column: "patch_requests.status"
+            go_type:
+              type: "Status"

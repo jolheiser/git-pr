@@ -1,10 +1,10 @@
 package git
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 
-	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
 
@@ -198,11 +198,16 @@ var sqliteMigrations = []string{
 	ALTER TABLE tmp_event_logs RENAME TO event_logs;`,
 }
 
-// Open opens a database connection.
-func SqliteOpen(dsn string, logger *slog.Logger) (*sqlx.DB, error) {
+// SqliteOpen opens a database connection.
+func SqliteOpen(dsn string, logger *slog.Logger) (*sql.DB, error) {
 	logger.Info("opening db file", "dsn", dsn)
-	db, err := sqlx.Connect("sqlite", dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
@@ -215,7 +220,7 @@ func SqliteOpen(dsn string, logger *slog.Logger) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func sqliteUpgrade(db *sqlx.DB) error {
+func sqliteUpgrade(db *sql.DB) error {
 	var version int
 	if err := db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
 		return fmt.Errorf("failed to query schema version: %v", err)
@@ -227,7 +232,7 @@ func sqliteUpgrade(db *sqlx.DB) error {
 		return fmt.Errorf("git-pr (version %d) older than schema (version %d)", len(sqliteMigrations), version)
 	}
 
-	tx, err := db.Beginx()
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}

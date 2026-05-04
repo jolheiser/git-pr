@@ -72,6 +72,10 @@ func main() {
 		panic(err)
 	}
 
+	// Register users before creating PRs
+	adminKey.MustCmd(nil, "register")
+	userKey.MustCmd(nil, "register")
+
 	// Accepted patch
 	userKey.MustCmd(patch, "pr create test")
 	userKey.MustCmd(nil, "pr edit 1 Accepted patch")

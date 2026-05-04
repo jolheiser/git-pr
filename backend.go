@@ -2,19 +2,21 @@ package git
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/picosh/git-pr/db"
 	"golang.org/x/crypto/ssh"
 )
 
 type Backend struct {
-	Logger *slog.Logger
-	DB     *sqlx.DB
-	Cfg    *GitCfg
+	Logger  *slog.Logger
+	DB      *sql.DB
+	Queries *db.Queries
+	Cfg     *GitCfg
 }
 
 var ErrRepoNoNamespace = fmt.Errorf("repo must be namespaced by username")

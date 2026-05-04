@@ -1,0 +1,115 @@
+CREATE TABLE IF NOT EXISTS app_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  pubkey TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS repos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (user_id, name),
+  CONSTRAINT repo_user_id_fk
+    FOREIGN KEY(user_id) REFERENCES app_users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS acl (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  pubkey TEXT,
+  ip_address TEXT,
+  permission TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS patch_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  repo_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  text TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL,
+  CONSTRAINT pr_user_id_fk
+    FOREIGN KEY(user_id) REFERENCES app_users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT pr_repo_id_fk
+    FOREIGN KEY(repo_id) REFERENCES repos(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS patchsets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  patch_request_id INTEGER NOT NULL,
+  review BOOLEAN NOT NULL DEFAULT false,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT patchset_user_id_fk
+    FOREIGN KEY(user_id) REFERENCES app_users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT patchset_patch_request_id_fk
+    FOREIGN KEY(patch_request_id) REFERENCES patch_requests(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS patches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  patchset_id INTEGER NOT NULL,
+  author_name TEXT NOT NULL,
+  author_email TEXT NOT NULL,
+  author_date DATETIME NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  body_appendix TEXT NOT NULL,
+  commit_sha TEXT NOT NULL,
+  content_sha TEXT NOT NULL,
+  raw_text TEXT NOT NULL,
+  base_commit_sha TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT patches_user_id_fk
+    FOREIGN KEY(user_id) REFERENCES app_users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT patches_patchset_id_fk
+    FOREIGN KEY(patchset_id) REFERENCES patchsets(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS event_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  repo_id INTEGER,
+  patch_request_id INTEGER,
+  patchset_id INTEGER,
+  event TEXT NOT NULL,
+  data TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT event_logs_pr_id_fk
+    FOREIGN KEY(patch_request_id) REFERENCES patch_requests(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT event_logs_patchset_id_fk
+    FOREIGN KEY(patchset_id) REFERENCES patchsets(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT event_logs_user_id_fk
+    FOREIGN KEY(user_id) REFERENCES app_users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT event_logs_repo_id_fk
+    FOREIGN KEY(repo_id) REFERENCES repos(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);

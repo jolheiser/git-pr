@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/picosh/git-pr/db"
 	"github.com/picosh/pico/pkg/pssh"
 	"golang.org/x/crypto/ssh"
 )
@@ -41,9 +42,10 @@ func GitSshServer(ctx context.Context, cfg *GitCfg) *pssh.SSHServer {
 	}
 
 	be := &Backend{
-		DB:     dbh,
-		Logger: cfg.Logger,
-		Cfg:    cfg,
+		DB:      dbh,
+		Queries: db.New(dbh),
+		Logger:  cfg.Logger,
+		Cfg:     cfg,
 	}
 
 	prCmd := &PrCmd{

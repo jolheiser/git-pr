@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"testing"
+
+	"github.com/picosh/git-pr/db"
 )
 
 func TestParsePatchsetWithCover(t *testing.T) {
@@ -20,9 +22,9 @@ func TestParsePatchsetWithCover(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	expected := []*Patch{
-		{Title: "Add torch deps"},
-		{Title: "feat: lets build an rnn"},
-		{Title: "chore: add torch to requirements"},
+		{Patch: db.Patch{Title: "Add torch deps"}},
+		{Patch: db.Patch{Title: "feat: lets build an rnn"}},
+		{Patch: db.Patch{Title: "chore: add torch to requirements"}},
 	}
 	if len(actual) != len(expected) {
 		t.Fatalf("patches not same length (expected:%d, actual:%d)\n", len(expected), len(actual))
